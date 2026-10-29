@@ -1,0 +1,77 @@
+name: BDD Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+env:
+  CONFIGURATION: Release
+  OUTPUT_DIR: artifacts/tests
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: global.json
+        cache: true
+        cache-dependency-path: |
+          **/*.csproj
+          Directory.Packages.props
+          global.json
+    - name: Cache Playwright browsers
+      uses: actions/cache@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ hashFiles('Directory.Packages.props') }}
+        restore-keys: playwright-${{ runner.os }}-
+    - name: Restore dependencies
+      run: dotnet restore TestAutomation.slnx
+    - name: Build
+      run: dotnet build Tests/Tests.csproj --no-restore -c "$CONFIGURATION" -o "$OUTPUT_DIR"
+    - name: Install Playwright browsers
+      run: pwsh "$OUTPUT_DIR/playwright.ps1" install --with-deps chromium
+    - name: Start application
+      run: docker compose up -d --pull always --wait --wait-timeout 180
+    - name: Wait for application
+      run: |
+        curl --fail --silent --retry 30 --retry-delay 2 --retry-all-errors http://localhost:5168/ > /dev/null
+        curl --fail --silent --retry 30 --retry-delay 2 --retry-all-errors http://localhost:5044/api/products > /dev/null
+    - name: Test
+      env:
+        TEST_Headless: "true"
+      run: dotnet test "$OUTPUT_DIR/Tests.dll" --verbosity normal
+    - name: Upload test artifacts
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-results
+        path: |
+          ${{ env.OUTPUT_DIR }}/TestReports.html
+          ${{ env.OUTPUT_DIR }}/screenshots/**
+        if-no-files-found: ignore
+    - name: Upload failure diagnostics
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-failure-artifacts
+        path: |
+          ${{ env.OUTPUT_DIR }}/TestReports.html
+          ${{ env.OUTPUT_DIR }}/*.har
+          ${{ env.OUTPUT_DIR }}/traces/**
+          ${{ env.OUTPUT_DIR }}/screenshots/**
+        if-no-files-found: ignore
+    - name: Stop application
+      if: always()
+      run: docker compose down

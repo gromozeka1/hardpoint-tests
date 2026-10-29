@@ -1,0 +1,48 @@
+﻿{
+  "$schema": "https://schemas.reqnroll.net/reqnroll-config-latest.json",
+  "language": {
+    "feature": "en-US",
+    "binding": "en-US"
+  },
+  "generator": {
+    "allowDebugGeneratedFiles": false,
+    "allowRowTests": false,
+    "addNonParallelizableMarkerForTags": [],
+    "disableFriendlyTestNames": false
+  },
+  "runtime": {
+    "missingOrPendingStepsOutcome": "Error",
+    "obsoleteBehavior": "Warn",
+    "stopAtFirstError": false
+  },
+  "trace": {
+    "stepDefinitionSkeletonStyle": "AsyncRegexAttribute",
+    "coloredOutput": false
+  },
+  "bindingAssemblies": [],
+  "formatters": {
+    "html": {
+      "outputFilePath": "report\\living_doc.html"
+    },
+    "message": {
+      "outputFilePath": "report\\cucumber_messages.ndjson"
+    }
+  },
+  "ide": {
+    "editor": {
+      "showStepCompletionAfterStepKeywords": true,
+      "gherkinFormat": {
+        "indentFeatureChildren": false,
+        "indentRuleChildren": false,
+        "indentSteps": true,
+        "indentAndSteps": false,
+        "indentDataTable": true,
+        "indentDocString": true,
+        "indentExamples": false,
+        "indentExamplesTable": true,
+        "tableCellPaddingSize": 1,
+        "tableCellRightAlignNumericContent": true
+      }
+    }
+  }
+}
