@@ -20,8 +20,9 @@ Solution file: `TestAutomation.slnx` (.NET 10, `global.json` pins the SDK).
 ## Dependency Flow
 
 ```
-Tests  ──nuget package──▶  HardPoint.Testing   (pinned in Directory.Packages.props,
-                                                served from ../localfeed until published)
+Tests  ──nuget package──▶  HardPoint.Testing   (pinned in Directory.Packages.props;
+                                                -p:UseLocalFramework=true to build
+                                                it from the sibling checkout instead)
 Tests  ──HTTP (runtime)──▶  ProductAPI   (via Playwright APIRequestContext, localhost:5044)
 Tests  ──browser (runtime)──▶  WebApp    (via Playwright, localhost:5168)
 ```
