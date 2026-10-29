@@ -28,18 +28,21 @@ Targets .NET 10.
 pinned in `Directory.Packages.props` (central package management — never put a `Version`
 attribute on the reference itself).
 
-Until the package is on nuget.org, it is served from the `localfeed` folder next to this
-repository:
+Until the package is on nuget.org it can be served from a local folder feed. That feed is
+deliberately **not** in `nuget.config`: NuGet fails a cold restore when a configured folder
+source does not exist, which breaks CI and any fresh clone. Register it once per machine
+instead:
 
 ```sh
-# in the framework repository
+# in the framework repository, packing into the folder beside both repositories
 dotnet pack HardPoint.Testing/HardPoint.Testing.csproj -c Release -o ../localfeed
 
-# here
-dotnet restore TestAutomation.slnx
+# here, for your user only
+dotnet nuget add source ../localfeed --name localfeed
 ```
 
-Bump the pinned version whenever the framework publishes a new one.
+Drop it with `dotnet nuget remove source localfeed` once the package is published. Bump the
+pinned version whenever the framework publishes a new one.
 
 ### Working against framework sources
 
