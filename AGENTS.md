@@ -22,8 +22,10 @@ repository.
 - `Tests` mirrors API models in `Tests/Models/` (POCOs) rather than sharing assemblies.
 - Local orchestration is defined in `docker-compose.yml`, which pulls the SUT images from
   Docker Hub (version pinned via `SUT_TAG`, default `1.0.0`).
-- The package is served from the sibling `localfeed` folder until it is published to
-  nuget.org; bump the pinned version after packing a new one.
+- Until the package is published to nuget.org, serve it from the sibling `localfeed` folder,
+  registered per machine with `dotnet nuget add source ../localfeed --name localfeed`. Do not
+  put that folder in `nuget.config`: a missing folder source fails a cold restore, including on
+  CI. Bump the pinned version after packing a new one.
 - Framework work can skip packing entirely: `-p:UseLocalFramework=true` swaps the package for a
   `ProjectReference` to the sibling framework checkout (`-p:LocalFrameworkPath` to override the
   location). Leave it off for CI and package-behaviour checks.
