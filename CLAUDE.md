@@ -32,11 +32,8 @@ TEST_Headless=true dotnet test Tests/Tests.csproj
 docker compose down
 ```
 
-Pack the framework into the sibling `localfeed` folder (registered per machine with
-`dotnet nuget add source ../localfeed --name localfeed` — never in `nuget.config`, where a
-missing folder breaks cold restores) and bump the pinned version when a new package version is
-needed, or run against its sources with
-`dotnet test Tests/Tests.csproj -p:UseLocalFramework=true` — no packing involved.
+Bump the pinned version when the framework publishes a new package version, or run against its
+sources with `dotnet test Tests/Tests.csproj -p:UseLocalFramework=true` — no packing involved.
 
 ---
 

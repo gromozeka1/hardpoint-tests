@@ -6,9 +6,9 @@
   and implicit usings enabled, containing the single test project `Tests/`.
 - Central Package Management is enabled in `Directory.Packages.props`. Never specify `Version`
   attributes on `PackageReference` elements in `.csproj` files.
-- The test framework is consumed as the `HardPoint.Testing` package (source:
-  https://github.com/gromozeka1/playwright-dotnet-mstest-reqnroll). Until it is published to
-  nuget.org it restores from the sibling `localfeed` folder configured in `nuget.config`.
+- The test framework is consumed as the `HardPoint.Testing` package from nuget.org (source:
+  https://github.com/gromozeka1/playwright-dotnet-mstest-reqnroll). For framework changes, run
+  with `-p:UseLocalFramework=true` to build against the sibling checkout instead.
 - The SUT is not part of this repository: `docker-compose.yml` pulls
   `gromozeka1/hardpoint-productapi` and `gromozeka1/hardpoint-webapp` (version pinned via
   `SUT_TAG`, default `1.0.0`). WebApp is at `http://localhost:5168`, ProductAPI at
