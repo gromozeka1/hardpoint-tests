@@ -41,6 +41,22 @@ dotnet restore TestAutomation.slnx
 
 Bump the pinned version whenever the framework publishes a new one.
 
+### Working against framework sources
+
+To iterate on the framework without packing a package, build against its project
+instead of the package:
+
+```sh
+dotnet test Tests/Tests.csproj -p:UseLocalFramework=true
+```
+
+The switch swaps the `HardPoint.Testing` `PackageReference` for a `ProjectReference`, so the
+framework is rebuilt on every run. It defaults to the sibling checkout at
+`../playwright-dotnet-mstest-reqnroll/HardPoint.Testing/HardPoint.Testing.csproj`; point it
+elsewhere with `-p:LocalFrameworkPath=<path to HardPoint.Testing.csproj>`. A missing path fails
+the build with the resolved path in the message rather than silently falling back to the
+package. Leave the switch off for CI and for anything that should prove package behaviour.
+
 ## Build and run the tests
 
 Install the .NET 10 SDK, then:

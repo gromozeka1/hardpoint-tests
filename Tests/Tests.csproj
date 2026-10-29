@@ -6,16 +6,28 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RunSettingsFilePath>$(MSBuildProjectDirectory)\test.runsettings</RunSettingsFilePath>
+    <!-- Local development against the framework sources: -p:UseLocalFramework=true builds
+         this project against that checkout instead of the pinned package. Defaults to the
+         sibling checkout; override with -p:LocalFrameworkPath pointing at the csproj. -->
+    <LocalFrameworkPath Condition="'$(LocalFrameworkPath)' == ''">$(MSBuildThisFileDirectory)..\..\playwright-dotnet-mstest-reqnroll\HardPoint.Testing\HardPoint.Testing.csproj</LocalFrameworkPath>
   </PropertyGroup>
+
+  <Target Name="EnsureLocalFrameworkExists" BeforeTargets="CollectPackageReferences;ResolveProjectReferences" Condition="'$(UseLocalFramework)' == 'true' AND !Exists('$(LocalFrameworkPath)')">
+    <Error Text="UseLocalFramework=true but no framework project at '$(LocalFrameworkPath)'. Pass -p:LocalFrameworkPath=&lt;path to HardPoint.Testing.csproj&gt;." />
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="Allure.Reqnroll" />
     <PackageReference Include="AwesomeAssertions" />
-    <PackageReference Include="HardPoint.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Microsoft.Playwright.MSTest.v4" />
     <PackageReference Include="MSTest.TestAdapter" />
     <PackageReference Include="Reqnroll.MSTest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(LocalFrameworkPath)" Condition="'$(UseLocalFramework)' == 'true'" />
+    <PackageReference Include="HardPoint.Testing" Condition="'$(UseLocalFramework)' != 'true'" />
   </ItemGroup>
 
   <ItemGroup>

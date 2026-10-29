@@ -24,6 +24,9 @@ repository.
   Docker Hub (version pinned via `SUT_TAG`, default `1.0.0`).
 - The package is served from the sibling `localfeed` folder until it is published to
   nuget.org; bump the pinned version after packing a new one.
+- Framework work can skip packing entirely: `-p:UseLocalFramework=true` swaps the package for a
+  `ProjectReference` to the sibling framework checkout (`-p:LocalFrameworkPath` to override the
+  location). Leave it off for CI and package-behaviour checks.
 
 ---
 
@@ -46,6 +49,9 @@ dotnet test Tests/Tests.csproj
 
 # Headless, as on CI
 TEST_Headless=true dotnet test Tests/Tests.csproj
+
+# Against the framework sources instead of the package (no packing)
+dotnet test Tests/Tests.csproj -p:UseLocalFramework=true
 
 # Stop the SUT (preserves the productapi-data volume)
 docker compose down

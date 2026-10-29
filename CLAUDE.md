@@ -33,7 +33,8 @@ docker compose down
 ```
 
 Pack the framework into the sibling `localfeed` folder and bump the pinned version when a new
-package version is needed.
+package version is needed, or run against its sources with
+`dotnet test Tests/Tests.csproj -p:UseLocalFramework=true` — no packing involved.
 
 ---
 
