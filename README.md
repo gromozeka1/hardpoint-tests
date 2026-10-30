@@ -113,6 +113,7 @@ Runs write, under the test output directory (or `outputDirectory` when set):
 suite headless, and uploads `TestReports.html` plus failure diagnostics (report, traces,
 screenshots, HAR files).
 
-CI restores from nuget.org, so it needs the pinned `HardPoint.Testing` version to be
-published there. Until it is, either publish a preview first or add a feed that hosts the
-package and authenticate the runner against it.
+CI restores the pinned `HardPoint.Testing` version from nuget.org. The pin is the
+`HardPointTestingVersion` property in `Directory.Packages.props`, overridable from the
+environment: the weekly scheduled run uses that to build and test against the newest published
+prerelease, so a framework release that breaks the suite shows up before anyone bumps the pin.
