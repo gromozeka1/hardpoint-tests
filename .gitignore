@@ -439,9 +439,5 @@ FodyWeavers.xsd
 *.feature.cs
 TestReports.html
 
-# Allure generated report and Results
-allure-report/
-allure-results/
-
 # Playwright CLI output (may contain credentials)
 .playwright-cli/

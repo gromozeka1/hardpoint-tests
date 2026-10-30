@@ -17,7 +17,6 @@
   </Target>
 
   <ItemGroup>
-    <PackageReference Include="Allure.Reqnroll" />
     <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Microsoft.Playwright.MSTest.v4" />
@@ -31,12 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="allurerc.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="allureConfig.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="appsettings.CI.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="test.runsettings">

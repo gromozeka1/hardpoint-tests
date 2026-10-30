@@ -77,13 +77,12 @@ A missing or malformed file fails with a message naming the resolved path and th
 
 Never hardcode URLs or browser settings in test code; always read from `ConfigReader.Settings`.
 
-## Dual Reporting
+## Reporting
 
-Two reporting mechanisms run in parallel:
-- **ExtentReports** (HTML) — driven by `AfterStep` hooks in `BaseHook`. Output: `TestReports.html` in the artifact directory.
-- **Allure** — driven automatically by `Allure.Reqnroll`. Config in `Tests/allureConfig.json`. Output: `allure-results/` at repo root level.
-
-Both are configured; do not remove either. The CI workflow uploads `TestReports.html` and `*.png` screenshots on every run, and on failure additionally uploads the report, HAR files, traces and screenshots as `test-failure-artifacts`.
+**ExtentReports** (HTML) is the suite's only report, driven by `AfterStep` hooks in `BaseHook`.
+Output: `TestReports.html` in the artifact directory. The CI workflow uploads `TestReports.html`
+and `*.png` screenshots on every run, and on failure additionally uploads the report, HAR files,
+traces and screenshots as `test-failure-artifacts`.
 
 ## Trace capture in the test run
 

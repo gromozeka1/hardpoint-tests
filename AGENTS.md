@@ -134,4 +134,4 @@ private fields.
 
 - Imperative, concise commit messages.
 - Do not commit `bin/`, `obj/`, SQLite runtime files, screenshots, HAR/trace files or report
-  output (`TestReports.html`, `allure-report/`, `allure-results/`).
+  output (`TestReports.html`).
