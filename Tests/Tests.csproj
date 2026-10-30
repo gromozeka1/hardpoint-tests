@@ -5,7 +5,6 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RunSettingsFilePath>$(MSBuildProjectDirectory)\test.runsettings</RunSettingsFilePath>
     <!-- Local development against the framework sources: -p:UseLocalFramework=true builds
          this project against that checkout instead of the pinned package. Defaults to the
          sibling checkout; override with -p:LocalFrameworkPath pointing at the csproj. -->
@@ -32,9 +31,6 @@
   <ItemGroup>
     <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="appsettings.CI.json" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="test.runsettings">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

@@ -91,6 +91,24 @@ tag (`@local`, `@dev`, `@qa`, `@stage`, `@prod`). Enforcement is on via
 It must live in this assembly — an assembly-level attribute in the package would configure the
 package, not the suite.
 
+### 4a. Filtered runs
+Reqnroll emits each scenario as one MSTest test named after the scenario title, so
+`dotnet test --filter` matches against those friendly names. The scenario tags themselves are not
+part of that name, which is why `dotnet test --filter "fullyqualifiedname~api"` currently matches
+12 of 20 scenarios — it is matching the word "api" in some scenario titles and step text, not the
+`@api` tag.
+
+Before depending on any filter, list the tests a run would see and verify the shape:
+
+```sh
+dotnet test Tests/Tests.csproj --list-tests
+dotnet test Tests/Tests.csproj --filter "fullyqualifiedname~<substring>" --no-build
+```
+
+Use filters for local debugging only. Do not build CI logic on a filter that depends on scenario
+substring matching; when a stable subset is needed, give it its own feature file, project, or tag
+convention and run it by title or project.
+
 ### 5. Isolation and cleanup
 - Scenarios must be independent and parallel-safe.
 - Pre-run cleanup: a `Background:` step, `Given I ensure "{name}" data is cleaned up if already exists`.

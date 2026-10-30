@@ -14,7 +14,7 @@ runs from Docker Hub images and its source lives in
 
 - `Tests/`: feature files (`Features/`), step definitions (`Steps/`), page objects (`Pages/`),
   hooks (`Hooks/`), API and availability helpers (`Support/`), models (`Models/`), and the
-  config files (`appsettings.json`, `appsettings.CI.json`, `reqnroll.json`, `test.runsettings`).
+  config files (`appsettings.json`, `appsettings.CI.json`, `reqnroll.json`).
 - `Tests/AssemblyInfo.cs`: the assembly-level `[assembly: Parallelize]` attribute.
 - `docker-compose.yml`: the SUT from published images (`SUT_TAG`, default `1.0.0`).
 - `Directory.Packages.props`: central versions, including the pinned `HardPoint.Testing` version.

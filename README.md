@@ -65,6 +65,12 @@ The `playwright.ps1` step downloads the browser and requires
 Headless runs, as on CI: `TEST_Headless=true dotnet test Tests/Tests.csproj`.
 
 ## Configuration
+## Filtered runs (local only)
+
+Reqnroll emits each scenario as one MSTest test named after the scenario title, so `dotnet test --filter` on this suite matches friendly scenario-title substrings, not the `@ui` / `@api` scenario tags. Before relying on any substring filter, list the tests with `dotnet test Tests/Tests.csproj --list-tests` and check the names first.
+
+Use filters for local debugging only â€” for example to run one scenario by title while you edit its steps. Do not build CI logic on a filter that depends on scenario substring matching; when a stable subset is needed, give it its own feature file, project, or tag convention and run that subset directly.
+
 
 `Tests/appsettings.json` (local, headed, `slowMo` 500) and `Tests/appsettings.CI.json`
 (headless) are copied to the test output directory. The framework picks the CI file
