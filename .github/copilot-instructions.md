@@ -48,5 +48,4 @@
 - Start the SUT with `docker compose up -d`, then run `dotnet test Tests/Tests.csproj`.
 - Headless: `TEST_Headless=true dotnet test Tests/Tests.csproj`. Settings can be overridden with
   `TEST_`-prefixed environment variables.
-- Do not commit `bin/`, `obj/`, `TestReports.html`, `allure-report/`, `allure-results/`, traces,
-  screenshots or HAR files.
+- Do not commit `bin/`, `obj/`, `TestReports.html`, traces, screenshots or HAR files.

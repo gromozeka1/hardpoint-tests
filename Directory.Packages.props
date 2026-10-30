@@ -2,11 +2,14 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <!-- The framework version this suite builds against. Overridable from the environment —
+         MSBuild reads environment variables as properties — so the scheduled canary can restore
+         the newest published prerelease without editing this file. -->
+    <HardPointTestingVersion Condition="'$(HardPointTestingVersion)' == ''">0.1.0-preview.1</HardPointTestingVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Allure.Reqnroll" Version="2.15.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
-    <PackageVersion Include="HardPoint.Testing" Version="0.1.0-preview.1" />
+    <PackageVersion Include="HardPoint.Testing" Version="$(HardPointTestingVersion)" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="Microsoft.Playwright.MSTest.v4" Version="1.63.0" />
     <PackageVersion Include="MSTest.TestAdapter" Version="4.5.1" />
