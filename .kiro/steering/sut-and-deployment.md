@@ -12,23 +12,28 @@ WebApp proxies all data through ProductAPI via `ProductApiClient` (typed `HttpCl
 ## ProductAPI Endpoints
 
 ```
-GET    api/products          → 200 []Product
-GET    api/products/{id}     → 200 Product | 404
-POST   api/products          → 201 Product | 409 (already exists)
-PUT    api/products/{id}     → 204 | 404 | 400
-DELETE api/products/{id}     → 204 | 404
-GET    /                     → 200 "Hello World!" (health probe)
+GET    api/products?search=&type=   → 200 []Product | 400 (unknown type)
+GET    api/products/{id}            → 200 Product | 404
+POST   api/products                 → 201 Product | 400 (validation) | 409 (name already exists)
+PUT    api/products/{id}            → 204 | 400 (id mismatch / validation) | 404 | 409 (name already exists)
+DELETE api/products/{id}            → 204 | 404
+GET    /                            → 200 "Hello world!" (health probe)
 ```
+
+`search` is a case-insensitive `Name` substring, `type` an exact `ProductType`, both ANDed; no
+matches returns `200 []`, never `404`. Duplicate names return `409` with a `ProblemDetails` body.
 
 Persistence: SQLite at `<ContentRoot>/Database/ProductList.db`. Seed data created by `ProductContext.OnModelCreating`:
 
-| Id | Name | ProductType | Price |
-|---|---|---|---|
-| 1 | Ryzen 7 7800X3D | CPU | 399 |
-| 2 | Dell UltraSharp 27 | MONITOR | 499 |
-| 3 | Logitech MX Master 3S | PERIPHARALS | 99 |
+| Id | Name | ProductType | Price | Stock |
+|---|---|---|---|---|
+| 1 | Ryzen 7 7800X3D | CPU | 399 | 25 |
+| 2 | Dell UltraSharp 27 | MONITOR | 499 | 5 |
+| 3 | Logitech MX Master 3S | PERIPHARALS | 99 | 0 |
 
-Seed data is applied via `Database.EnsureCreated()` at startup — it is only inserted once when the database file is first created. The `@api` scenario `Get an existing product` depends on seed product id `1` existing.
+The seed rows ship inside the initial migration, applied by `Database.Migrate()` at startup — they are inserted once, when the database file is first created. Re-seed with `docker compose down -v` or by deleting the `.db` file; a restart alone does not re-insert them.
+
+No scenario here depends on a seed id: `Get an existing product` creates its own product first ([Tests/Features/ProductApi.feature:4-10](../../Tests/Features/ProductApi.feature#L4-L10)). The SUT's own image smoke test still asserts seed product `id 1`, which is why re-seeding matters there.
 
 ## ProductType Enum
 
@@ -137,9 +142,9 @@ Because `codegen` is set to `csharp`, actions the MCP agent performs on the WebA
 // MCP-generated (paste as starting point)
 await page.GetByRole(AriaRole.Textbox, new() { Name = "Name" }).FillAsync("Headphones");
 
-// Refactored to page object pattern
-private ILocator TxtName => Page.GetByLabel("Name");
-await TxtName.FillAsync(product.Name);
+// Refactored into a page object: await the page in the method, then resolve from it
+public async Task FillNameAsync(string name)
+    => await (await GetPageAsync()).GetByLabel("Name").FillAsync(name);
 ```
 
 ## Environment Variable Overrides

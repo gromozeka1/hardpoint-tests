@@ -33,8 +33,9 @@
 - Tag every scenario with exactly one test-type tag (`@ui` or `@api`) and at least one
   environment tag (`@local`, `@dev`, `@qa`, `@stage`, `@prod`). Enforcement is enabled through
   `"enforceScenarioTags": true`.
-- Page objects must inherit `HardPoint.Testing.Driver.BasePage` and prefer semantic ARIA
-  locators (`Link()`, `Button()`, `Row()`, `Text()`, `GetByRole()`, `GetByLabel()`) over CSS.
+- Page objects must inherit `HardPoint.Testing.Driver.BasePage`, await `GetPageAsync()`, and prefer
+  semantic ARIA locators (`LinkAsync()`, `ButtonAsync()`, `RowAsync()`, `TextAsync()`, `GetByRole()`,
+  `GetByLabel()`) over CSS.
 - Step classes must be `sealed`, annotated with `[Binding]`, and use primary constructors; store
   inter-step data in `ScenarioContext`.
 - Keep scenarios parallel-safe: `Background:` cleanup steps before creating entities, the

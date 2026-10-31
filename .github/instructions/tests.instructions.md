@@ -21,11 +21,12 @@ applyTo: "Tests/**,**/*.feature"
 ## Page Objects (`Tests/Pages/*.cs`)
 - All page objects must inherit from `HardPoint.Testing.Driver.BasePage`.
 - Inject `PlaywrightDriver` via primary constructor and pass to `base(playwrightDriver)`.
-- Use accessible ARIA role locators from `BasePage`:
-  - `Link(name)`, `Button(name)`, `Row(name)`, `Text(text)`
-  - `ClickLinkAsync(name)`, `ClickButtonAsync(name)`
-  - `Page.GetByRole(...)`, `Page.GetByLabel(...)`, `Page.GetByPlaceholder(...)`
-- Resort to CSS selectors (e.g. `Page.Locator("#id")`) only when accessible semantic locators are unavailable.
+- Resolve locators from the awaited page (`IPage page = await GetPageAsync();`), preferring the async
+  `BasePage` helpers where they fit:
+  - `await LinkAsync(name)`, `await ButtonAsync(name)`, `await RowAsync(name)`, `await TextAsync(text)`
+  - `await ClickLinkAsync(name)`, `await ClickButtonAsync(name)`
+  - `page.GetByRole(...)`, `page.GetByLabel(...)`, `page.GetByPlaceholder(...)`
+- Resort to CSS selectors (e.g. `page.Locator("#id")`) only when accessible semantic locators are unavailable.
 
 ## Framework Lifecycle & Hooks
 - `PlaywrightDriver` manages Playwright objects lazily. `@api` scenarios do not launch a browser instance.
