@@ -146,6 +146,24 @@ Deserialise responses with the static `ReadAsync(IAPIResponse)` helper:
 Product product = await ProductsApi.ReadAsync(response);
 ```
 
+## Contract and accessibility checks
+
+Two cross-cutting guards sit outside the product features. Extend these rather than adding a one-off
+assertion to a product scenario:
+
+- **`ApiContract.feature`** (`Tests/Support/ApiContract.cs`) reads the OpenAPI document the ProductAPI
+  publishes at `GET /openapi/v1.json` and validates real responses against it with `JsonSchema.Net`.
+  Use `GetDeclaredSchemaAsync` to assert something about the declared contract, and
+  `GetCompiledSchemaAsync` / `GetArraySchemaAsync` with `FindMismatchAsync` to validate a payload.
+- **`Accessibility.feature`** (`Tests/Support/Accessibility.cs`) scans the page a scenario has open.
+  Run the `I check the page for accessibility violations` step, then assert either
+  `there are no "critical" accessibility violations` or the pinned ceiling
+  `the page reports at most {n} accessibility violations`. Lower a ceiling when a finding is fixed;
+  raise one only with a stated reason.
+
+Both carry a self-check — a deliberately invalid payload, and a page with a known defect — so a
+validator or scanner that silently stopped working cannot look like a pass.
+
 ## Models
 
 `Tests/Models/Product.cs` and `ProductType` mirror the SUT's API models (`ProductAPI/Models/` in https://github.com/gromozeka1/sut-hardpoint). They are intentionally separate — the test project does not reference the API project. When the API model changes, update both and bump `SUT_TAG` in `docker-compose.yml` to test against the released image.
