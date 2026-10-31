@@ -14,8 +14,8 @@ before the split. Items that concern the framework itself point at
 The run history recorded `isRetry: true` entries for "Create product and verify the
 details", "Delete a product" and "Get an existing product" — these have passed only on
 a retry at least once. That history was Allure's and was removed with the tool, but the fact
-stands: the pipeline itself has no retry mechanism (`test.runsettings` is empty boilerplate;
-no `[Retry]` attribute; no rerun step in CI), so the same flake in CI means a red build.
+stands: the pipeline itself has no retry mechanism (no `[Retry]` attribute, no rerun step in
+CI), so the same flake in CI means a red build.
 
 **Suggestion:** add a scenario-level retry hook for CI runs and/or a
 `dotnet test --filter` failed-rerun step, and surface retried-but-passed tests
@@ -103,8 +103,10 @@ ignore rules for its output. `TestReports.html` from the framework is the single
 publishes, and no second reporting stack needs maintaining.
 
 ### 8. Small CI polish
-- `concurrency: cancel-in-progress` so superseded PR pushes do not waste runners.
-- Write pass/fail counts to `$GITHUB_STEP_SUMMARY` for at-a-glance results.
+- ✅ `concurrency: cancel-in-progress` — added for pull requests, so a superseded push does not
+  keep a runner busy. `main` and scheduled runs are never cancelled: their history is the signal.
+- ✅ Write pass/fail counts to `$GITHUB_STEP_SUMMARY` for at-a-glance results — the workflow now
+  writes the BDD totals as well as the canary version, so every run has a summary.
 
 ## 🟢 Test coverage growth
 
@@ -132,21 +134,24 @@ coverage almost for free.
 - **`Tests/history.jsonl` was tracked** while every other test output is ignored. ✅
   Resolved: the file was untracked and deleted along with Allure, which was the only thing
   that wrote it.
-- **`Tests/test.runsettings` is entirely commented-out boilerplate** — populate
-  it (timeouts, `MaxCpuCount`) or delete the dead sections; the `Playwright`
-  block duplicates config already living in `appsettings.json`.
+- **`Tests/test.runsettings` was entirely commented-out boilerplate** and CI never applied it
+  (`dotnet test <dll>` ignores `RunSettingsFilePath`). ✅ Resolved: the file, the property and the
+  copy item are gone; timeouts and browser settings live in `appsettings*.json`.
 - **Two hardcoded `Task.Delay(500)` waits in `HardPoint.Testing/Driver/PlaywrightDriver.cs`**
-  (framework repository; formerly `Framework/Driver/PlaywrightDriver.cs:94-96`) — replace with
-  condition-based waiting; fixed sleeps are the same problem the suite avoids with web-first
-  assertions.
+  (framework repository) ✅ Resolved: `DisposeAsync()` now awaits page, context, browser, API
+  context and driver teardown in order, so there are no fixed sleeps left to replace.
 - **Supply-chain hardening (optional):** pin compose images by digest
   (`image: ...@sha256:...`) since Docker Hub tags can be moved; `SUT_TAG`
   already provides the version knob.
-- **Developer experience:** document filtered runs
-  (`dotnet test --filter "TestCategory=api"` works today and is much faster
-  than the full suite) and add an `.env.example` for `SUT_TAG`.
+- **Developer experience:** `.env.example` now documents `SUT_TAG` for Compose, and filtered runs are
+  documented in `README.md` and `AGENTS.md` against what Reqnroll actually generates — friendly
+  scenario-title test names, not tag-qualified attribute names, so `dotnet test --filter` matches
+  substrings of those names, not `@ui` / `@api`. The old `TestCategory=api` wording was wrong; the
+  real behaviour is now described there.
 
 ## Suggested order of attack
 
-1. Item **1** — flakiness detection, the only correctness gap still open.
-2. Coverage additions (**9–11**), then hygiene as time allows.
+1. Coverage additions (**9–11**) — the open work.
+2. Hygiene as time allows.
+
+Item **1** (flakiness detection) stays skipped by decision; revisit it if flakes reappear in CI.

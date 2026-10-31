@@ -15,6 +15,12 @@ on:
 permissions:
   contents: read
 
+# A superseded pull-request push does not need to keep a runner busy, but main and scheduled
+# runs do: their history is the signal, so they are never cancelled mid-flight.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   CONFIGURATION: Release
   OUTPUT_DIR: artifacts/tests
@@ -69,7 +75,29 @@ jobs:
     - name: Test
       env:
         TEST_Headless: "true"
-      run: dotnet test "$OUTPUT_DIR/Tests.dll" --verbosity normal
+      run: |
+        set -o pipefail
+        dotnet test "$OUTPUT_DIR/Tests.dll" --verbosity normal | tee test-run.log
+        # VSTest normally emits one "Passed! - Failed: ..., Passed: ..., Skipped: ..., Total: ..."
+        # line. Also accept the separate "Total tests:" summary format.
+        read -r total passed failed skipped < <(awk '
+          /Passed! - Failed:/ || /Total tests:/ {
+            for (i = 1; i < NF; i++) {
+              key = $i
+              gsub(/[^[:alpha:]]/, "", key)
+              value = $(i + 1)
+              sub(/[^0-9].*/, "", value)
+              if (key == "Total" || key == "tests") total = value
+              if (key == "Passed") passed = value
+              if (key == "Failed") failed = value
+              if (key == "Skipped") skipped = value
+            }
+          }
+          END { printf "%d %d %d %d\n", total, passed, failed, skipped }
+        ' test-run.log)
+
+        echo "BDD suite: $total tests, $passed passed, $failed failed, $skipped skipped" >> "$GITHUB_STEP_SUMMARY"
+        printf '| Result | Count |\n| --- | --- |\n| Total | %s |\n| Passed | %s |\n| Failed | %s |\n| Skipped | %s |\n' "$total" "$passed" "$failed" "$skipped" >> "$GITHUB_STEP_SUMMARY"
     - name: Upload test artifacts
       if: always()
       uses: actions/upload-artifact@v7
