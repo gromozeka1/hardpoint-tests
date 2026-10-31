@@ -179,23 +179,23 @@ one, and fixing it needs a `sut-hardpoint` change plus an image release.
 - **Two hardcoded `Task.Delay(500)` waits in `HardPoint.Testing/Driver/PlaywrightDriver.cs`**
   (framework repository) ✅ Resolved: `DisposeAsync()` now awaits page, context, browser, API
   context and driver teardown in order, so there are no fixed sleeps left to replace.
-- **Supply-chain hardening (optional):** pin compose images by digest
-  (`image: ...@sha256:...`) since Docker Hub tags can be moved; `SUT_TAG`
-  already provides the version knob.
+- **Supply-chain hardening** — ✅ done. A tag can be moved on Docker Hub, so `--pull always` could
+  silently run a different image than the one that was tested. `docker-compose.pinned.yml` pins both
+  images by digest, and CI composes with it; `SUT_TAG` still selects the release for local runs. The
+  two digest lines are refreshed deliberately when the release changes, which is the point — an image
+  swap no longer passes unnoticed.
 - **Developer experience:** `.env.example` now documents `SUT_TAG` for Compose, and filtered runs are
   documented in `README.md` and `AGENTS.md` against what Reqnroll actually generates — friendly
   scenario-title test names, not tag-qualified attribute names, so `dotnet test --filter` matches
   substrings of those names, not `@ui` / `@api`. The old `TestCategory=api` wording was wrong; the
   real behaviour is now described there.
 
-## Suggested order of attack
+## Status
 
-The coverage additions (**9–11**) are complete. What is left:
+Everything here is closed except one item that deliberately stays open:
 
-1. **Hygiene** — the one optional item: pin the compose images by digest (`image: ...@sha256:...`).
-   `SUT_TAG` still provides the version knob; a digest pin additionally makes a moved tag impossible.
-2. Nothing else here is open. Item **1** (flakiness detection) stays skipped by decision; revisit it
-   if flakes reappear in CI.
-
-One finding from this round belongs to the SUT rather than the suite: the `type=123` gap recorded
-under item 10 needs a `sut-hardpoint` change and a new image release before the suite can assert it.
+- Coverage (**9–11**) — done.
+- Hygiene — done, including the digest pin for the compose images.
+- Item **1** (flakiness detection) — skipped by decision; revisit it if flakes reappear in CI.
+- **Open, and outside this repository:** the `type=123` contract gap recorded under item 10 needs a
+  `sut-hardpoint` change (`Enum.IsDefined`) and a new image release before the suite can assert it.

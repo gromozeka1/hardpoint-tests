@@ -44,6 +44,9 @@ pwsh Tests/bin/Debug/net10.0/playwright.ps1 install chromium
 # Start the SUT services
 docker compose up -d
 
+# Start the exact images CI runs (pinned by digest, so a moved tag cannot slip in)
+docker compose -f docker-compose.yml -f docker-compose.pinned.yml up -d
+
 # Run the suite (SUT must be running)
 dotnet test Tests/Tests.csproj
 
