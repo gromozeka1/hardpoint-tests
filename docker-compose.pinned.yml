@@ -1,0 +1,21 @@
+# Immutable pins for the published SUT images.
+#
+# docker-compose.yml selects a release by tag (`SUT_TAG`), and a tag can be moved on Docker Hub:
+# `docker compose up --pull always` would then silently run a different image than the one that was
+# tested. This overlay pins the exact digests, so a moved tag cannot change what runs.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.pinned.yml up -d
+#
+# CI uses this overlay. Local runs use docker-compose.yml alone and stay free to set `SUT_TAG`.
+#
+# Refresh both digests whenever the SUT release changes:
+#   docker image inspect gromozeka1/hardpoint-productapi:<tag> --format '{{index .RepoDigests 0}}'
+#   docker image inspect gromozeka1/hardpoint-webapp:<tag>      --format '{{index .RepoDigests 0}}'
+#
+# The digests below were read from the `1.0.0` images and match what CI runs.
+services:
+  productapi:
+    image: gromozeka1/hardpoint-productapi:1.0.0@sha256:59a0041b738c25d9f18d2eb7cc00043eda8bab247254e5aa8b8937432f302346
+
+  webapp:
+    image: gromozeka1/hardpoint-webapp:1.0.0@sha256:b0861c2d2f904fbc03bbf0efd34c6b4611a7b071643ec3862b74fdb5d3bd86d1

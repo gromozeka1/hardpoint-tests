@@ -27,7 +27,7 @@ that are actually enforced.
 | `Tests/Models/` | POCOs mirroring the API models — deliberately not shared assemblies |
 | `Tests/AssemblyInfo.cs` | The assembly-level `[assembly: Parallelize]` — must live here, not in the package |
 | `Tests/appsettings.json`, `appsettings.CI.json`, `reqnroll.json` | Test configuration |
-| `docker-compose.yml`, `.env.example` | The SUT from published images (`SUT_TAG`, default `1.0.0`) |
+| `docker-compose.yml`, `docker-compose.pinned.yml`, `.env.example` | The SUT from published images (`SUT_TAG`, default `1.0.0`); the pinned overlay fixes them by digest, which is what CI runs |
 | `Directory.Packages.props` | Central Package Management, including the single `HardPointTestingVersion` pin |
 
 ## 2. Dependency direction

@@ -16,6 +16,7 @@ ProductAPI and SQLite, running from pre-built images on Docker Hub. Its source l
 - `Tests/AssemblyInfo.cs` — assembly-level `Parallelize` attribute; it configures this
   assembly, so it has to live here rather than in the framework package.
 - `docker-compose.yml` — runs the SUT from its published Docker Hub images.
+- `docker-compose.pinned.yml` — overrides those images with the exact digests CI runs.
 - `Directory.Packages.props` — central package versions, including the pinned
   `HardPoint.Testing` version.
 - `nuget.config` — nuget.org only.
@@ -117,6 +118,16 @@ The images default to release `1.0.0`; override with `SUT_TAG` (for example
 `SUT_TAG=latest docker compose up -d`). The WebApp is on `http://localhost:5168`, ProductAPI
 on `http://localhost:5044`; inside the Compose network the WebApp reaches ProductAPI at
 `http://productapi:8080/`.
+
+A tag can be moved on Docker Hub, so CI runs the images by **digest** rather than by tag:
+
+```sh
+docker compose -f docker-compose.yml -f docker-compose.pinned.yml up -d   # what CI runs
+```
+
+`docker-compose.pinned.yml` holds one digest per image. When releasing a new SUT version, update
+`SUT_TAG` for local runs **and** refresh both digests there: the failure this prevents is a moved
+tag being tested instead of the release you meant.
 
 ## Artifacts
 

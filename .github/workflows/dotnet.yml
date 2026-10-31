@@ -67,7 +67,8 @@ jobs:
     - name: Install Playwright browsers
       run: pwsh "$OUTPUT_DIR/playwright.ps1" install --with-deps chromium
     - name: Start application
-      run: docker compose up -d --pull always --wait --wait-timeout 180
+      # Digests, not tags: a moved Docker Hub tag must not change what CI tests.
+      run: docker compose -f docker-compose.yml -f docker-compose.pinned.yml up -d --pull always --wait --wait-timeout 180
     - name: Wait for application
       run: |
         curl --fail --silent --retry 30 --retry-delay 2 --retry-all-errors http://localhost:5168/ > /dev/null
@@ -120,4 +121,4 @@ jobs:
         if-no-files-found: ignore
     - name: Stop application
       if: always()
-      run: docker compose down
+      run: docker compose -f docker-compose.yml -f docker-compose.pinned.yml down
