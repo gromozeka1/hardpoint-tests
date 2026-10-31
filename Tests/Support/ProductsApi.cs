@@ -68,6 +68,24 @@ public class ProductsApi(PlaywrightDriver playwrightDriver)
         })
     });
 
+    /// <summary>
+    /// PUTs to <paramref name="routeId"/> while the body claims another id, which the API must
+    /// reject with 400.
+    /// </summary>
+    public async Task<IAPIResponse> UpdateWithBodyIdAsync(int routeId, int bodyId, Product product) => await (await Api).PutAsync($"products/{routeId}", new()
+    {
+        Headers = new Dictionary<string, string> { ["Content-Type"] = "application/json" },
+        Data = JsonSerializer.Serialize(new
+        {
+            Id = bodyId,
+            product.Name,
+            product.Description,
+            product.ProductType,
+            product.Price,
+            product.Stock
+        })
+    });
+
     public static async Task<Product> ReadAsync(IAPIResponse response)
     {
         JsonElement? data = await response.JsonAsync();

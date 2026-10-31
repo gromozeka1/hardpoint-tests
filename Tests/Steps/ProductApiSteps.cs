@@ -126,6 +126,35 @@ public sealed class ProductApiSteps(ScenarioContext scenarioContext, ProductName
         _response = await productsApi.GetAllAsync(search: name);
     }
 
+    [When("I search for products with name {string} and type {string}")]
+    public async Task WhenISearchForProductsWithNameAndType(string name, string type)
+    {
+        _response = await productsApi.GetAllAsync(search: productNames.Actual(name), type: type);
+    }
+
+    [When("I POST a product named {string} with price {int} and stock {int}")]
+    public async Task WhenIPostAProductNamedWithPriceAndStock(string name, int price, int stock)
+    {
+        var actual = productNames.Register(name);
+        TrackProductForCleanup(actual);
+
+        _response = await productsApi.CreateRawAsync(JsonSerializer.Serialize(new
+        {
+            Name = actual,
+            Description = "Range validation",
+            Price = price,
+            Stock = stock,
+            ProductType = ProductType.CPU
+        }));
+    }
+
+    [When("I PUT the created product with a body id offset by {int}")]
+    public async Task WhenIPutTheCreatedProductWithABodyIdOffsetBy(int offset)
+    {
+        Product product = scenarioContext.Get<Product>();
+        _response = await productsApi.UpdateWithBodyIdAsync(product.Id, product.Id + offset, product);
+    }
+
     [When("I filter products by type {string}")]
     public async Task WhenIFilterProductsByType(string type)
     {
@@ -164,6 +193,14 @@ public sealed class ProductApiSteps(ScenarioContext scenarioContext, ProductName
         List<Product> products = await ProductsApi.ReadListAsync(_response);
         string actual = productNames.Actual(name);
         _ = products.Any(p => p.Name.Contains(actual, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
+    }
+
+    [Then("the product list does not contain {string}")]
+    public async Task ThenTheProductListDoesNotContain(string name)
+    {
+        List<Product> products = await ProductsApi.ReadListAsync(_response);
+        string actual = productNames.Actual(name);
+        _ = products.Any(p => p.Name.Contains(actual, StringComparison.OrdinalIgnoreCase)).Should().BeFalse();
     }
 
     [Then("all products in the response have type {string}")]
