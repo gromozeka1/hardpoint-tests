@@ -57,8 +57,8 @@ public sealed class ProductSteps(ScenarioContext scenarioContext, ProductPage pr
     {
         Product product = table.CreateInstance<Product>();
         scenarioContext.Set(product);          // share with later steps
-        await productPage.CreateProduct(product);
-        await productPage.ClickCreate();
+        await productPage.CreateProductAsync(product);
+        await productPage.ClickCreateAsync();
     }
 }
 ```
@@ -75,27 +75,28 @@ _ = product.Name.Should().Be("Headphones");
 For Playwright async assertions use `Assertions.Expect(...)`:
 
 ```csharp
-await Assertions.Expect(productListPage.IsProductCreated(product.Name)).ToBeVisibleAsync();
+await Assertions.Expect(await productListPage.IsProductCreatedAsync(product.Name)).ToBeVisibleAsync();
 ```
 
 ## Page Objects
 
 - Extend `BasePage` and place files in `Tests/Pages/`.
 - Use primary constructor injection of `PlaywrightDriver`.
-- Declare locators as private `ILocator` properties using the ARIA-role helpers from `BasePage`. Only fall back to `Page.Locator(css)` when no ARIA locator works.
-- Expose behaviour methods, not raw locators (the `IsProductCreated` exception returns a locator because `Assertions.Expect` needs it).
+- Await the page once per method (`IPage page = await GetPageAsync();`) and resolve locators from it; use the async `BasePage` helpers (`LinkAsync`, `ButtonAsync`, `RowAsync`, `TextAsync`, `ClickLinkAsync`, `ClickButtonAsync`) where they match. Fall back to `page.Locator(css)` only when no ARIA locator works.
+- Expose behaviour methods, not raw locators — except where `Assertions.Expect` needs the locator itself (`ProductRowAsync`, `StockBadgeForProductAsync`).
 
 ```csharp
 public class ProductPage(PlaywrightDriver playwrightDriver) : BasePage(playwrightDriver)
 {
-    private ILocator TxtName => Page.GetByLabel("Name");
-    private ILocator TxtPrice => Page.Locator("#Price");   // CSS fallback — no label
-
-    public async Task CreateProduct(Product product)
+    public async Task CreateProductAsync(Product product)
     {
-        await TxtName.FillAsync(product.Name);
-        await TxtPrice.FillAsync(product.Price.ToString());
+        IPage page = await GetPageAsync();
+        await page.GetByLabel("Name").FillAsync(product.Name);
+        await page.Locator("#Price").FillAsync(product.Price.ToString(CultureInfo.InvariantCulture));
+        await ClickButtonAsync("Create product");
     }
+
+    public async Task<ILocator> RowForAsync(string name) => await RowAsync(name);
 }
 ```
 
@@ -117,16 +118,16 @@ playwright-cli fill e3 "Test Product"
 playwright-cli click e9
 ```
 
-The `generate-locator` output maps directly to the C# `BasePage` helpers:
+The `generate-locator` output maps directly to C#. Below, `page` is `await GetPageAsync()`:
 
 | CLI output | C# equivalent |
 |---|---|
-| `getByRole('textbox', { name: 'Name' })` | `Page.GetByLabel("Name")` or `Page.GetByRole(AriaRole.Textbox, new() { Name = "Name" })` |
-| `getByRole('button', { name: 'Create product' })` | `Button("Create product")` via `BasePage` |
-| `getByRole('link', { name: 'Add product' })` | `Link("Add product")` via `BasePage` |
-| `getByRole('combobox', { name: 'Product type' })` | `Page.GetByRole(AriaRole.Combobox, new() { Name = "Product type" })` |
+| `getByRole('textbox', { name: 'Name' })` | `page.GetByLabel("Name")` or `page.GetByRole(AriaRole.Textbox, new() { Name = "Name" })` |
+| `getByRole('button', { name: 'Create product' })` | `await ClickButtonAsync("Create product")` via `BasePage` |
+| `getByRole('link', { name: 'Add product' })` | `await ClickLinkAsync("Add product")` via `BasePage` |
+| `getByRole('combobox', { name: 'Product type' })` | `page.GetByRole(AriaRole.Combobox, new() { Name = "Product type" })` |
 
-Prefer the `BasePage` helpers (`Link`, `Button`, `Row`, `Text`) when they match. Use `Page.GetByLabel` for form fields. Fall back to `Page.Locator(css)` only when no ARIA locator is available.
+Prefer the `BasePage` helpers (`LinkAsync`, `ButtonAsync`, `RowAsync`, `TextAsync`) when they match. Use `page.GetByLabel` for form fields. Fall back to `page.Locator(css)` only when no ARIA locator is available.
 
 For a full command reference, activate the skill with `#playwright-cli`.
 
@@ -171,7 +172,7 @@ public class Hooks(ProductsApi productsApi) : BaseHook()
 
 - `Tests/reqnroll.json` sets `stepDefinitionSkeletonStyle: AsyncRegexAttribute` — generated step skeletons use async methods with Regex attributes.
 - `allowRowTests: false` is set — do not use Reqnroll row-test generation.
-- Missing step bindings produce `Pending` outcome, not a build error.
+- `missingOrPendingStepsOutcome` is `Error`, so an unbound or pending step **fails the run** rather than being skipped. Bind the step before running, and use `[StepDefinition("...")]` when the same text appears under more than one keyword (see Step Definitions above).
 
 ## Debugging Failing Scenarios with playwright-cli
 

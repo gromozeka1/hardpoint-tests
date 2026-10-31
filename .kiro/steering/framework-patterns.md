@@ -4,28 +4,43 @@
 
 `HardPoint.Testing.Driver.PlaywrightDriver` — the single source of truth for Playwright resource lifecycle. It is registered in Reqnroll's DI container (one instance per scenario) and shared by page objects, step definitions, and the `ProductsApi` helper.
 
-- **Browser access:** Use `playwrightDriver.Page` (synchronous `IPage`). Do not instantiate browsers or pages anywhere else.
-- **API access:** Use `playwrightDriver.ApiRequestContext` (`Task<IAPIRequestContext>`). The base URL is set in `appsettings.json` → `apiOptions.BaseURL`.
-- **Screenshots:** Call `playwrightDriver.TakeScreenshotAsPathAsync(fileName)` for named screenshots; they are written to `screenshots/` under the artifact directory.
-- **Disposal:** `PlaywrightDriver.Dispose` is called by `BaseHook.AfterTestRun`. Never dispose it manually in step definitions or page objects.
+- **Browser access:** `IPage page = await playwrightDriver.GetPageAsync();` — page access is asynchronous end to end. There is no synchronous `Page` property (removed in `HardPoint.Testing` `0.1.0-preview.2`); `Browser` and `BrowserContext` are `Task`-returning for the same reason. Do not instantiate browsers or pages anywhere else.
+- **API access:** `await playwrightDriver.ApiRequestContext` (`Task<IAPIRequestContext>`). The base URL is set in `appsettings.json` → `apiOptions.BaseURL`.
+- **Screenshots:** Call `await playwrightDriver.TakeScreenshotAsPathAsync(fileName)` for named screenshots; they are written to `screenshots/` under the artifact directory.
+- **Tracing:** `StartTracingAsync(title)` / `StopTracingAsync(keepTrace)`; `BaseHook` starts a trace for every `@ui` scenario and keeps it only when the scenario fails.
+- **Disposal:** `BaseHook.AfterTestRun` calls `DisposeAsync()`, which closes the page, browser context, browser, API context and driver in that order; a synchronous `Dispose()` remains as an `IDisposable` adapter. Never dispose it manually in step definitions or page objects.
 
 ## BasePage
 
-`HardPoint.Testing.Driver.BasePage` — all page objects must extend this. It injects `PlaywrightDriver` via primary constructor and exposes `protected IPage Page`.
-
-Built-in locator helpers (prefer these over raw `Page` calls for common ARIA roles):
+`HardPoint.Testing.Driver.BasePage` — all page objects must extend this. It injects `PlaywrightDriver` via primary constructor and exposes `protected Task<IPage> GetPageAsync()`. Every helper is asynchronous:
 
 ```csharp
-Link(string name)   // Page.GetByRole(AriaRole.Link, new() { Name = name })
-Button(string name) // Page.GetByRole(AriaRole.Button, new() { Name = name })
-Row(string name)    // Page.GetByRole(AriaRole.Row, new() { Name = name })
-Text(string text)   // Page.GetByText(text, new() { Exact = true })
-
-ClickLinkAsync(string name)   // async helper
-ClickButtonAsync(string name) // async helper
+Task<IPage> GetPageAsync()
+Task<ILocator> LinkAsync(string name)     // GetByRole(AriaRole.Link,   new() { Name = name })
+Task<ILocator> ButtonAsync(string name)   // GetByRole(AriaRole.Button, new() { Name = name })
+Task<ILocator> RowAsync(string name)      // GetByRole(AriaRole.Row,    new() { Name = name })
+Task<ILocator> TextAsync(string text)     // GetByText(text, new() { Exact = true })
+Task ClickLinkAsync(string name)
+Task ClickButtonAsync(string name)
 ```
 
-Prefer ARIA-role locators (`GetByRole`, `GetByLabel`) over CSS selectors. Use CSS selectors (`Page.Locator("#id")`) only when no semantic ARIA locator is available (e.g. `#Price`).
+Await the page once per method and resolve locators from it; CSS is the fallback when no ARIA
+locator fits:
+
+```csharp
+public class ProductPage(PlaywrightDriver playwrightDriver) : BasePage(playwrightDriver)
+{
+    public async Task CreateProductAsync(Product product)
+    {
+        IPage page = await GetPageAsync();
+        await page.GetByLabel("Name").FillAsync(product.Name);
+        await page.Locator("#Price").FillAsync(product.Price.ToString());   // CSS fallback — no label
+        await ClickButtonAsync("Create product");                          // BasePage helper
+    }
+}
+```
+
+Prefer ARIA-role locators (`GetByRole`, `GetByLabel`) over CSS selectors.
 
 ## BaseHook
 
