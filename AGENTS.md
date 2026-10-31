@@ -63,8 +63,8 @@ docker compose down
 
 ### 1. Driver and page objects
 - `PlaywrightDriver` comes from the package and is injected by Reqnroll's DI container (one
-  instance per scenario). Use `playwrightDriver.Page` and `playwrightDriver.ApiRequestContext`;
-  never construct browsers or pages.
+  instance per scenario). Await `playwrightDriver.GetPageAsync()` for page access and use
+  `playwrightDriver.ApiRequestContext` for API access; never construct browsers or pages.
 - API-only (`@api`) scenarios never start a browser.
 - All page objects extend `HardPoint.Testing.Driver.BasePage` and inject `PlaywrightDriver`
   through a primary constructor.

@@ -7,26 +7,18 @@ namespace Tests.Pages;
 
 public class ProductPage(PlaywrightDriver playwrightDriver) : BasePage(playwrightDriver)
 {
-    private ILocator TxtName => Page.GetByLabel("Name");
-
-    private ILocator TxtDescription => Page.GetByLabel("Description");
-
-    private ILocator TxtPrice => Page.Locator("#Price");
-
-    private ILocator TxtStock => Page.Locator("#Stock");
-
-    private ILocator SelectProduct => Page.GetByRole(AriaRole.Combobox, new() { Name = "Product type" });
-
-    public async Task CreateProduct(Product product)
+    public async Task CreateProductAsync(Product product)
     {
         ArgumentNullException.ThrowIfNull(product);
 
-        await TxtName.FillAsync(product.Name);
-        await TxtDescription.FillAsync(product.Description);
-        await TxtPrice.FillAsync(product.Price.ToString(CultureInfo.InvariantCulture));
-        await TxtStock.FillAsync(product.Stock.ToString(CultureInfo.InvariantCulture));
-        _ = await SelectProduct.SelectOptionAsync(((int)product.ProductType).ToString(CultureInfo.InvariantCulture));
+        IPage page = await GetPageAsync();
+        await page.GetByLabel("Name").FillAsync(product.Name);
+        await page.GetByLabel("Description").FillAsync(product.Description);
+        await page.Locator("#Price").FillAsync(product.Price.ToString(CultureInfo.InvariantCulture));
+        await page.Locator("#Stock").FillAsync(product.Stock.ToString(CultureInfo.InvariantCulture));
+        _ = await page.GetByRole(AriaRole.Combobox, new() { Name = "Product type" })
+            .SelectOptionAsync(((int)product.ProductType).ToString(CultureInfo.InvariantCulture));
     }
 
-    public async Task ClickCreate() => await ClickButtonAsync("Create product");
+    public async Task ClickCreateAsync() => await ClickButtonAsync("Create product");
 }

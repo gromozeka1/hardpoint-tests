@@ -21,21 +21,21 @@ public sealed class ProductSteps(ScenarioContext scenarioContext, ProductNames p
         scenarioContext.Set(product);
         TrackProductForCleanup(product.Name);
 
-        await productPage.CreateProduct(product);
-        await productPage.ClickCreate();
+        await productPage.CreateProductAsync(product);
+        await productPage.ClickCreateAsync();
     }
 
     [When("I click the Create button without entering details")]
     public async Task WhenIClickTheCreateButtonWithoutEnteringDetails()
     {
-        await productPage.ClickCreate();
+        await productPage.ClickCreateAsync();
     }
 
     [When("I click the Details link of the newly created product")]
     public async Task WhenIClickTheDetailsLinkOfTheNewlyCreatedProduct()
     {
         Product product = scenarioContext.Get<Product>();
-        await productListPage.ClickProductFromList(product.Name);
+        await productListPage.ClickProductFromListAsync(product.Name);
     }
 
     [When("I search for products by name {string} in UI")]
@@ -54,37 +54,37 @@ public sealed class ProductSteps(ScenarioContext scenarioContext, ProductNames p
     public async Task ThenISeeAllTheProductDetailsAreCreatedAsExpected()
     {
         Product product = scenarioContext.Get<Product>();
-        await Assertions.Expect(productListPage.IsProductCreated(product.Name)).ToBeVisibleAsync();
+        await Assertions.Expect(await productListPage.IsProductCreatedAsync(product.Name)).ToBeVisibleAsync();
     }
 
     [Then("I see the stock badge {string} for product {string}")]
     public async Task ThenISeeTheStockBadgeForProduct(string badgeText, string productName)
     {
-        await Assertions.Expect(productListPage.StockBadgeForProduct(productNames.Actual(productName))).ToHaveTextAsync(badgeText);
+        await Assertions.Expect(await productListPage.StockBadgeForProductAsync(productNames.Actual(productName))).ToHaveTextAsync(badgeText);
     }
 
     [Then("I see a validation message {string}")]
     public async Task ThenISeeAValidationMessage(string message)
     {
-        await Assertions.Expect(productPage.Text(productNames.ActualIn(message))).ToBeVisibleAsync();
+        await Assertions.Expect(await productPage.TextAsync(productNames.ActualIn(message))).ToBeVisibleAsync();
     }
 
     [Then("I see an error message {string}")]
     public async Task ThenISeeAnErrorMessage(string message)
     {
-        await Assertions.Expect(productPage.Text(productNames.ActualIn(message))).ToBeVisibleAsync();
+        await Assertions.Expect(await productPage.TextAsync(productNames.ActualIn(message))).ToBeVisibleAsync();
     }
 
     [Then("I see product {string} in the list")]
     public async Task ThenISeeProductInTheList(string name)
     {
-        await Assertions.Expect(productListPage.ProductRow(productNames.Actual(name))).ToBeVisibleAsync();
+        await Assertions.Expect(await productListPage.ProductRowAsync(productNames.Actual(name))).ToBeVisibleAsync();
     }
 
     [Then("I do not see product {string} in the list")]
     public async Task ThenIDoNotSeeProductInTheList(string name)
     {
-        await Assertions.Expect(productListPage.ProductRow(productNames.Actual(name))).Not.ToBeVisibleAsync();
+        await Assertions.Expect(await productListPage.ProductRowAsync(productNames.Actual(name))).Not.ToBeVisibleAsync();
     }
 
     private void TrackProductForCleanup(string name)
