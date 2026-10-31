@@ -78,14 +78,23 @@ jobs:
       run: |
         set -o pipefail
         dotnet test "$OUTPUT_DIR/Tests.dll" --verbosity normal | tee test-run.log
-        total=$(grep -E '^\s*Total tests:' test-run.log | awk '{print $3}')
-        passed=$(grep -E '^\s*Passed:' test-run.log | awk '{print $2}')
-        failed=$(grep -E '^\s*Failed:' test-run.log | awk '{print $2}')
-        skipped=$(grep -E '^\s*Skipped:' test-run.log | awk '{print $2}')
-        [ -z "$total" ] && total=0
-        [ -z "$passed" ] && passed=0
-        [ -z "$failed" ] && failed=0
-        [ -z "$skipped" ] && skipped=0
+        # VSTest normally emits one "Passed! - Failed: ..., Passed: ..., Skipped: ..., Total: ..."
+        # line. Also accept the separate "Total tests:" summary format.
+        read -r total passed failed skipped < <(awk '
+          /Passed! - Failed:/ || /Total tests:/ {
+            for (i = 1; i < NF; i++) {
+              key = $i
+              gsub(/[^[:alpha:]]/, "", key)
+              value = $(i + 1)
+              sub(/[^0-9].*/, "", value)
+              if (key == "Total" || key == "tests") total = value
+              if (key == "Passed") passed = value
+              if (key == "Failed") failed = value
+              if (key == "Skipped") skipped = value
+            }
+          }
+          END { printf "%d %d %d %d\n", total, passed, failed, skipped }
+        ' test-run.log)
 
         echo "BDD suite: $total tests, $passed passed, $failed failed, $skipped skipped" >> "$GITHUB_STEP_SUMMARY"
         printf '| Result | Count |\n| --- | --- |\n| Total | %s |\n| Passed | %s |\n| Failed | %s |\n| Skipped | %s |\n' "$total" "$passed" "$failed" "$skipped" >> "$GITHUB_STEP_SUMMARY"
