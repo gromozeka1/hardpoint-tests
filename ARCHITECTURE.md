@@ -19,7 +19,7 @@ that are actually enforced.
 
 | Path | Contents |
 |---|---|
-| `Tests/Features/` | Gherkin: `Product.feature` (`@ui`, 8 scenarios), `ProductApi.feature` (`@api`, 12 scenarios) — **20 total** |
+| `Tests/Features/` | Gherkin: `Product.feature` (8 `@ui`), `ProductApi.feature` (22 `@api`), `ApiContract.feature` (3 `@api`), `Accessibility.feature` (3 `@ui`) — **36 total** |
 | `Tests/Steps/` | Step definitions — `sealed`, `[Binding]`, primary-constructor injection |
 | `Tests/Pages/` | Page objects extending `HardPoint.Testing.Driver.BasePage` |
 | `Tests/Hooks/` | `Hooks.cs` extends `BaseHook`, adds only suite-specific cleanup |
@@ -174,8 +174,8 @@ Playwright package update.
 
 Reqnroll emits each scenario as one MSTest test **named after the scenario title**. `dotnet test
 --filter` therefore matches friendly-name substrings, **not** the `@ui` / `@api` tags.
-`fullyqualifiedname~api` happens to match 12 of 20 scenarios — it is matching the word in titles and
-step text, not the tag.
+`fullyqualifiedname~api` happens to match a subset of scenarios — it is matching the word in titles
+and step text, not the tag, so the set it selects is arbitrary and changes as titles change.
 
 Always check the shape first:
 

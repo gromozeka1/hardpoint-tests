@@ -88,6 +88,21 @@ Reqnroll emits each scenario as one MSTest test named after the scenario title, 
 
 Use filters for local debugging only - for example to run one scenario by title while you edit its steps. Do not build CI logic on a filter that depends on scenario substring matching; when a stable subset is needed, give it its own feature file, project, or tag convention and run that subset directly.
 
+## Contract and accessibility checks
+
+Two cross-cutting features guard things the product scenarios cannot see:
+
+- `Tests/Features/ApiContract.feature` fetches the OpenAPI document the ProductAPI publishes
+  (`GET /openapi/v1.json`) and validates real responses against the schemas in it, using
+  `JsonSchema.Net`. It fails with a schema mismatch when a SUT release renames a field, changes a
+  limit or drops an endpoint the suite calls.
+- `Tests/Features/Accessibility.feature` scans the product list and the create form with axe-core
+  (WCAG 2.0/2.1 A + AA plus best practice). Critical violations fail the scenario and the total per
+  page is pinned at `0`, so any new finding fails the run. axe-core is vendored at
+  `Tests/Support/Axe/axe.min.js` (MPL-2.0, version pinned) and copied to the output directory by the
+  project file — no CDN access at run time. Bumping the bundle can add rules, which raises the
+  pinned counts.
+
 ## Run the SUT with Docker Compose
 
 Prerequisites: Docker Desktop or Docker Engine with Compose v2 and the daemon running, with

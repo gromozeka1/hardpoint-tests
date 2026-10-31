@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
     <PackageVersion Include="HardPoint.Testing" Version="$(HardPointTestingVersion)" />
+    <PackageVersion Include="JsonSchema.Net" Version="9.6.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="Microsoft.Playwright.MSTest.v4" Version="1.63.0" />
     <PackageVersion Include="MSTest.TestAdapter" Version="4.5.1" />

@@ -110,24 +110,63 @@ publishes, and no second reporting stack needs maintaining.
 
 ## 🟢 Test coverage growth
 
-### 9. Contract / schema tests
-Validate API responses against the SUT's published OpenAPI document
-(the SUT repo ships `ProductAPI.json`). This catches breaking contract changes
-between image releases before UI tests stumble on them.
+### 9. Contract / schema tests — ✅ done
+`Tests/Features/ApiContract.feature` (with `Tests/Support/ApiContract.cs`) checks the suite's
+assumptions against the OpenAPI document the ProductAPI publishes, and the responses against the
+schemas in it:
 
-Related: consider **generating `Tests/Models` from the OpenAPI spec** instead of
-hand-mirroring — the docs currently warn humans to keep three `ProductType`
-enum copies in sync.
+- the document still declares the `Product` schema with exactly the fields `Tests/Models/Product.cs`
+  mirrors, and `ProductType` as a **number** — the serialisation contract the WebApp and the test
+  models both depend on;
+- the endpoints the suite calls are still declared: `GET`/`POST /api/Products` and
+  `GET`/`PUT`/`DELETE /api/Products/{id}`;
+- a real list response and a real single-product response conform to the published schema, validated
+  with `JsonSchema.Net` against the schema resolved from `components.schemas`.
 
-### 10. Data-driven API scenarios
-`Examples` tables for search/type-filter permutations and validation failures
-(400 on unknown `type`, 400 on id-mismatch PUT) would expand coverage without
-new step code.
+Decisions worth knowing:
 
-### 11. Accessibility checks
-Page objects already use ARIA role locators; adding axe-core
-(`@axe-core/playwright` injected via `AddScriptTag`) gives a11y regression
-coverage almost for free.
+- **The document is fetched from the running service** (`GET /openapi/v1.json`) instead of being read
+  from the SUT repository's `ProductAPI.json`. A copied file would only prove the suite agrees with a
+  snapshot someone remembered to refresh; fetching it validates the image actually under test, and
+  keeps the two repositories independent — which is the point of the split.
+- **The schema checks are self-verifying**: one scenario asserts that a payload missing the required
+  `name` is *rejected*, so a validator that silently stopped checking cannot make the clean scenarios
+  pass.
+
+Deferred: generating `Tests/Models` from the specification. The mirrored POCOs are six properties,
+the contract scenario now fails on drift, and codegen would add a build-time dependency to save a few
+lines. Revisit only if the API surface grows.
+
+### 10. Data-driven API scenarios — ✅ done
+`Examples` tables added to `ProductApi.feature`:
+
+| Outline | Variants | Covers |
+|---|---|---|
+| POST rejects out-of-range price and stock values | 3 | `400` below the `[Range]` floor |
+| GET rejects type filters that are not ProductType values | 3 | `400` for `INVALID_TYPE`, `UNKNOWN`, `MONITOR_LIST` |
+| PUT with a body id that does not match the route returns 400 | 3 | id mismatch on `PUT` |
+
+Plus a combined-filter scenario proving `search` and `type` are ANDed: a name match with the wrong
+type returns `200` and omits the product.
+
+**Finding while writing these:** `GET api/products?type=123` returns **`200 []`, not `400`**. `123`
+is not a `ProductType`, but .NET's `Enum.TryParse` accepts numeric strings and yields the undefined
+value `(ProductType)123`, which matches nothing. The endpoint promises `400` for an unknown type, so
+either the API should reject undefined values (`Enum.IsDefined`) or the documentation should say
+numeric input is accepted. Not encoded as an expected result here — it is a SUT decision, not a suite
+one, and fixing it needs a `sut-hardpoint` change plus an image release.
+
+### 11. Accessibility checks — ✅ done
+`Tests/Features/Accessibility.feature` scans the product list and the create form with axe-core:
+
+- axe-core **4.14.0** is vendored at `Tests/Support/Axe/axe.min.js` (MPL-2.0) and injected with
+  `AddScriptTag`, so a scan never depends on a CDN and the rule set changes only when the file does;
+- the rule set is WCAG 2.0/2.1 A + AA plus best practice;
+- both pages currently report **zero** violations, and the scenario pins that ceiling at `0`, so a new
+  finding fails the run instead of passing silently;
+- one scenario points the scanner at a page with a deliberate defect (an `img` with no `alt`) and
+  asserts it reports `image-alt`. Without that guard a scanner that silently stopped running would
+  produce exactly the same clean result as an accessible page.
 
 ## ⚪ Hygiene
 
@@ -151,7 +190,12 @@ coverage almost for free.
 
 ## Suggested order of attack
 
-1. Coverage additions (**9–11**) — the open work.
-2. Hygiene as time allows.
+The coverage additions (**9–11**) are complete. What is left:
 
-Item **1** (flakiness detection) stays skipped by decision; revisit it if flakes reappear in CI.
+1. **Hygiene** — the one optional item: pin the compose images by digest (`image: ...@sha256:...`).
+   `SUT_TAG` still provides the version knob; a digest pin additionally makes a moved tag impossible.
+2. Nothing else here is open. Item **1** (flakiness detection) stays skipped by decision; revisit it
+   if flakes reappear in CI.
+
+One finding from this round belongs to the SUT rather than the suite: the `type=123` gap recorded
+under item 10 needs a `sut-hardpoint` change and a new image release before the suite can assert it.

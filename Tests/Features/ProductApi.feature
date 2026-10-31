@@ -82,3 +82,47 @@ Scenario: Stock field is persisted and returned
   When I request the created product
   Then the response status is 200
   And the product has stock 7
+
+Scenario Outline: POST rejects out-of-range price and stock values
+  When I POST a product named "ValidationRange" with price <price> and stock <stock>
+  Then the response status is 400
+
+  Examples:
+    | price | stock |
+    |    -1 |     1 |
+    |   100 |    -1 |
+    |    -1 |    -1 |
+
+Scenario Outline: GET rejects type filters that are not ProductType values
+  When I filter products by type "<type>"
+  Then the response status is 400
+
+  Examples:
+    | type         |
+    | INVALID_TYPE |
+    | UNKNOWN      |
+    | MONITOR_LIST |
+
+Scenario Outline: PUT with a body id that does not match the route returns 400
+  Given a product exists with the following details
+    | Name            | Description | Price | ProductType | Stock |
+    | API Mismatch Id | Id mismatch |   100 | CPU         |     1 |
+  When I PUT the created product with a body id offset by <offset>
+  Then the response status is 400
+
+  Examples:
+    | offset |
+    |      1 |
+    |     -1 |
+    |   1000 |
+
+Scenario: Search and type filters combine with AND semantics
+  Given a product exists with the following details
+    | Name        | Description | Price | ProductType | Stock |
+    | ComboFilter | Combo test  |   100 | CPU         |     1 |
+  When I search for products with name "ComboFilter" and type "CPU"
+  Then the response status is 200
+  And the product list contains "ComboFilter"
+  When I search for products with name "ComboFilter" and type "MONITOR"
+  Then the response status is 200
+  And the product list does not contain "ComboFilter"

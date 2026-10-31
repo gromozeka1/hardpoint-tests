@@ -94,8 +94,8 @@ package, not the suite.
 ### 4a. Filtered runs
 Reqnroll emits each scenario as one MSTest test named after the scenario title, so
 `dotnet test --filter` matches against those friendly names. The scenario tags themselves are not
-part of that name, which is why `dotnet test --filter "fullyqualifiedname~api"` currently matches
-12 of 20 scenarios — it is matching the word "api" in some scenario titles and step text, not the
+part of that name, which is why `dotnet test --filter "fullyqualifiedname~api"` selects an arbitrary
+subset — it is matching the word "api" in some scenario titles and step text, not the
 `@api` tag.
 
 Before depending on any filter, list the tests a run would see and verify the shape:
