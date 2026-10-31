@@ -5,7 +5,7 @@
     <!-- The framework version this suite builds against. Overridable from the environment —
          MSBuild reads environment variables as properties — so the scheduled canary can restore
          the newest published prerelease without editing this file. -->
-    <HardPointTestingVersion Condition="'$(HardPointTestingVersion)' == ''">0.1.0-preview.1</HardPointTestingVersion>
+    <HardPointTestingVersion Condition="'$(HardPointTestingVersion)' == ''">0.1.0-preview.2</HardPointTestingVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
