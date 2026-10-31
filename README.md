@@ -18,7 +18,7 @@ ProductAPI and SQLite, running from pre-built images on Docker Hub. Its source l
 - `docker-compose.yml` — runs the SUT from its published Docker Hub images.
 - `Directory.Packages.props` — central package versions, including the pinned
   `HardPoint.Testing` version.
-- `nuget.config` — nuget.org plus the local folder feed used before the package is published.
+- `nuget.config` — nuget.org only.
 
 Targets .NET 10.
 
@@ -65,12 +65,6 @@ The `playwright.ps1` step downloads the browser and requires
 Headless runs, as on CI: `TEST_Headless=true dotnet test Tests/Tests.csproj`.
 
 ## Configuration
-## Filtered runs (local only)
-
-Reqnroll emits each scenario as one MSTest test named after the scenario title, so `dotnet test --filter` on this suite matches friendly scenario-title substrings, not the `@ui` / `@api` scenario tags. Before relying on any substring filter, list the tests with `dotnet test Tests/Tests.csproj --list-tests` and check the names first.
-
-Use filters for local debugging only â€” for example to run one scenario by title while you edit its steps. Do not build CI logic on a filter that depends on scenario substring matching; when a stable subset is needed, give it its own feature file, project, or tag convention and run that subset directly.
-
 
 `Tests/appsettings.json` (local, headed, `slowMo` 500) and `Tests/appsettings.CI.json`
 (headless) are copied to the test output directory. The framework picks the CI file
@@ -87,6 +81,12 @@ Any setting can be overridden with `TEST_<Setting>` environment variables, for e
 `TEST_Headless=true` or `TEST_ApplicationUrl=http://host:5168`. Nested settings are addressed
 by leaf name or by a `__`-separated path of property names; collection settings take
 comma-separated values. An override only changes a key the config file already contains.
+
+## Filtered runs (local only)
+
+Reqnroll emits each scenario as one MSTest test named after the scenario title, so `dotnet test --filter` on this suite matches friendly scenario-title substrings, not the `@ui` / `@api` scenario tags. Before relying on any substring filter, list the available tests with `dotnet test Tests/Tests.csproj --list-tests` and check the names first.
+
+Use filters for local debugging only - for example to run one scenario by title while you edit its steps. Do not build CI logic on a filter that depends on scenario substring matching; when a stable subset is needed, give it its own feature file, project, or tag convention and run that subset directly.
 
 ## Run the SUT with Docker Compose
 
